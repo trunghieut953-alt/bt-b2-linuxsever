@@ -8,7 +8,7 @@ function App() {
   // Lấy danh sách sinh viên
   const fetchStudents = async () => {
     try {
-      const res = await fetch('/api/students');
+      const res = await fetch('http://localhost:5000/api/students');
       const data = await res.json();
       setStudents(data);
     } catch (error) {
@@ -30,7 +30,7 @@ function App() {
     try {
       if (editId) {
         // Nếu đang có editId -> Gọi API Cập nhật (Câu 61)
-        const res = await fetch(`/api/students/${editId}`, {
+        const res = await fetch(`http://localhost:5000/api/students/${editId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -39,7 +39,7 @@ function App() {
         setEditId(null); // Reset lại trạng thái
       } else {
         // Nếu không có editId -> Gọi API Thêm mới (Câu 60)
-        const res = await fetch('/api/students', {
+        const res = await fetch('http://localhost:5000/api/students', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -57,7 +57,7 @@ function App() {
   const handleDelete = async (id) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa sinh viên này?')) {
       try {
-        await fetch(`/api/students/${id}`, { method: 'DELETE' });
+        await fetch(`http://localhost:5000/api/students/${id}`, { method: 'DELETE' });
         alert('Xóa thành công!');
         fetchStudents(); // CÂU 63: Load lại danh sách sau khi xóa
       } catch (error) {
