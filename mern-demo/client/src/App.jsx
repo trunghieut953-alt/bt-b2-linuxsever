@@ -3,12 +3,13 @@ import { useState, useEffect } from 'react';
 function App() {
   const [students, setStudents] = useState([]);
   const [formData, setFormData] = useState({ studentId: '', name: '', email: '' });
-  const [editId, setEditId] = useState(null); // Lưu ID của sinh viên đang được sửa
+  const [editId, setEditId] = useState(null);
 
-  // Lấy danh sách sinh viên
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   const fetchStudents = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/students');
+      const res = await fetch(`${API_BASE_URL}/api/students`);
       const data = await res.json();
       setStudents(data);
     } catch (error) {
@@ -24,49 +25,57 @@ function App() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // CÂU 60 & 61: Xử lý Thêm mới (POST) hoặc Cập nhật (PUT)
+  // HÀM ĐÃ ĐƯỢC NÂNG CẤP ĐỂ BẮT LỖI CHÍNH XÁC TỪ BACKEND
   const handleSubmit = async (e) => {
     e.preventDefault(); 
     try {
+      let res;
       if (editId) {
-        // Nếu đang có editId -> Gọi API Cập nhật (Câu 61)
-        const res = await fetch(`http://localhost:5000/api/students/${editId}`, {
+        res = await fetch(`${API_BASE_URL}/api/students/${editId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
         });
-        if (res.ok) alert('Cập nhật sinh viên thành công!');
-        setEditId(null); // Reset lại trạng thái
       } else {
-        // Nếu không có editId -> Gọi API Thêm mới (Câu 60)
-        const res = await fetch('http://localhost:5000/api/students', {
+        res = await fetch(`${API_BASE_URL}/api/students`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
         });
-        if (res.ok) alert('Thêm sinh viên thành công!');
       }
-      setFormData({ studentId: '', name: '', email: '' }); // Xóa trắng form
-      fetchStudents(); // CÂU 63: Load lại danh sách
+
+      const result = await res.json().catch(() => ({})); 
+
+      // NẾU BACKEND BÁO LỖI (Mã 4xx, 5xx) -> Quăng ra lỗi ngay lập tức
+      if (!res.ok) {
+        throw new Error(result.message || result.error || `Mã lỗi Server: ${res.status}`);
+      }
+
+      // NẾU THÀNH CÔNG THỰC SỰ
+      alert(editId ? 'Cập nhật sinh viên thành công!' : 'Thêm sinh viên thành công!');
+      setEditId(null);
+      setFormData({ studentId: '', name: '', email: '' }); 
+      fetchStudents(); 
     } catch (error) {
       console.error('Lỗi lưu dữ liệu:', error);
+      alert('THẤT BẠI: ' + error.message); // Hiển thị nguyên nhân thực sự lên màn hình
     }
   };
 
-  // CÂU 62: Xử lý Xóa sinh viên (DELETE)
   const handleDelete = async (id) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa sinh viên này?')) {
       try {
-        await fetch(`http://localhost:5000/api/students/${id}`, { method: 'DELETE' });
+        const res = await fetch(`${API_BASE_URL}/api/students/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Không thể xóa trên server');
         alert('Xóa thành công!');
-        fetchStudents(); // CÂU 63: Load lại danh sách sau khi xóa
+        fetchStudents(); 
       } catch (error) {
         console.error('Lỗi khi xóa:', error);
+        alert('Lỗi xóa: ' + error.message);
       }
     }
   };
 
-  // Đổ dữ liệu lên form khi bấm nút Sửa
   const handleEditClick = (student) => {
     setFormData({ studentId: student.studentId, name: student.name, email: student.email });
     setEditId(student._id);
