@@ -22,6 +22,15 @@ const studentSchema = new mongoose.Schema({
 });
 const Student = mongoose.model('Student', studentSchema);
 
+// --- API KIỂM TRA SỨC KHỎE (HEALTH CHECK) CHO PHIÊN BẢN 2.0 ---
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'UP',
+        timestamp: new Date(),
+        uptime: process.uptime()
+    });
+});
+
 // --- CÁC API ROUTES CHO CRUD ---
 
 // 1. Lấy danh sách sinh viên (GET)
@@ -70,5 +79,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Server đang chạy tại port ${PORT}`);
+    console.log(`Server đang chạy tại port ${PORT} - Phien ban Auto-Deploy v2.0`);
 });

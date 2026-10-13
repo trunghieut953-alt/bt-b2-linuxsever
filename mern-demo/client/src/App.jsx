@@ -5,11 +5,12 @@ function App() {
   const [formData, setFormData] = useState({ studentId: '', name: '', email: '' });
   const [editId, setEditId] = useState(null);
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  // ĐÃ XÓA BIẾN API_BASE_URL VÌ NGINX SẼ TỰ CHUYỂN TIẾP (REVERSE PROXY)
 
   const fetchStudents = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/students`);
+      // SỬA: Dùng đường dẫn tương đối
+      const res = await fetch('/api/students');
       const data = await res.json();
       setStudents(data);
     } catch (error) {
@@ -25,19 +26,20 @@ function App() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // HÀM ĐÃ ĐƯỢC NÂNG CẤP ĐỂ BẮT LỖI CHÍNH XÁC TỪ BACKEND
   const handleSubmit = async (e) => {
     e.preventDefault(); 
     try {
       let res;
       if (editId) {
-        res = await fetch(`${API_BASE_URL}/api/students/${editId}`, {
+        // SỬA: Dùng đường dẫn tương đối
+        res = await fetch(`/api/students/${editId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
         });
       } else {
-        res = await fetch(`${API_BASE_URL}/api/students`, {
+        // SỬA: Dùng đường dẫn tương đối
+        res = await fetch('/api/students', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -46,26 +48,25 @@ function App() {
 
       const result = await res.json().catch(() => ({})); 
 
-      // NẾU BACKEND BÁO LỖI (Mã 4xx, 5xx) -> Quăng ra lỗi ngay lập tức
       if (!res.ok) {
         throw new Error(result.message || result.error || `Mã lỗi Server: ${res.status}`);
       }
 
-      // NẾU THÀNH CÔNG THỰC SỰ
       alert(editId ? 'Cập nhật sinh viên thành công!' : 'Thêm sinh viên thành công!');
       setEditId(null);
       setFormData({ studentId: '', name: '', email: '' }); 
       fetchStudents(); 
     } catch (error) {
       console.error('Lỗi lưu dữ liệu:', error);
-      alert('THẤT BẠI: ' + error.message); // Hiển thị nguyên nhân thực sự lên màn hình
+      alert('THẤT BẠI: ' + error.message); 
     }
   };
 
   const handleDelete = async (id) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa sinh viên này?')) {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/students/${id}`, { method: 'DELETE' });
+        // SỬA: Dùng đường dẫn tương đối
+        const res = await fetch(`/api/students/${id}`, { method: 'DELETE' });
         if (!res.ok) throw new Error('Không thể xóa trên server');
         alert('Xóa thành công!');
         fetchStudents(); 
@@ -83,7 +84,7 @@ function App() {
 
   return (
     <div style={{ padding: '30px', maxWidth: '800px', margin: '0 auto', fontFamily: 'Arial' }}>
-      <h2 style={{ textAlign: 'center', color: '#333' }}>Quản lý Sinh Viên (Full CRUD)</h2>
+      <h2 style={{ textAlign: 'center', color: '#333' }}>Trần Trung Hiếu - Quản lý Sinh Viên v2.0 </h2>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
         <input type="text" name="studentId" placeholder="MSSV" value={formData.studentId} onChange={handleChange} required style={{ padding: '8px', flex: 1 }}/>
@@ -108,6 +109,7 @@ function App() {
             <tr key={sv._id}>
               <td>{sv.studentId}</td>
               <td>{sv.name}</td>
+              
               <td>{sv.email}</td>
               <td>
                 <button onClick={() => handleEditClick(sv)} style={{ marginRight: '10px', padding: '5px 10px', background: '#3b82f6', color: 'white', border: 'none', cursor: 'pointer' }}>Sửa</button>
